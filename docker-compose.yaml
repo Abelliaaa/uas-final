@@ -1,15 +1,17 @@
+version: "3.9"
+
 services:
   aggregator:
     build: ./aggregator
     ports:
       - "8080:8080"
+    depends_on:
+      - storage
+      - broker
     environment:
       - DATABASE_URL=postgres://user:pass@storage:5432/db
       - BROKER_URL=redis://broker:6379
       - ASYNC_MODE=true
-    depends_on:
-      - storage
-      - broker
 
   publisher:
     build: ./publisher
@@ -20,6 +22,7 @@ services:
 
   broker:
     image: redis:7-alpine
+    ports: [] # tetap internal
 
   storage:
     image: postgres:16-alpine
@@ -29,6 +32,7 @@ services:
       POSTGRES_PASSWORD: pass
     volumes:
       - pg_data:/var/lib/postgresql/data
+      - ./storage/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   pg_data:
